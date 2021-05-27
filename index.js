@@ -4,24 +4,23 @@ var openpgp = require("openpgp"); // use as CommonJS, AMD, ES6 module or via win
 openpgp.initWorker({ path: "openpgp.worker.js" }); // set the relative web worker path
 
 // Set Firebase Admin options
-let serviceAccount = require("./fraser-votes-5da49fb5e231.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+// let serviceAccount = require("./fraser-votes-5da49fb5e231.json");
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 // Generate Keys
 let genKeys = (name, email) => {
   // Set Key Options
   var genOptions = {
     userIds: [{ name: name, email: email }], // multiple user IDs
-    numBits: 4096, // RSA key size
   };
 
   let keys = openpgp.generateKey(genOptions).then(function (key) {
     var privkey = key.privateKeyArmored; // '-----BEGIN PGP PRIVATE KEY BLOCK ... '
     var pubkey = key.publicKeyArmored; // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
-    var revocationSignature = key.revocationSignature; // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
-    return { privkey, pubkey, revocationSignature };
+    var revocationCertificate = key.revocationCertificate; // '-----BEGIN PGP PUBLIC KEY BLOCK ... '
+    return { privkey, pubkey, revocationCertificate };
   });
 
   return keys;
@@ -66,7 +65,7 @@ let decrypt = async (ciphertext, privkey) => {
 const testString = "Fraser Votes 2020";
 genKeys("Jon Smith", "jon@example.com")
   .then((keys) => {
-    // console.log(keys);
+    console.log(keys);
     return encrypt(testString, keys.pubkey).then((ciphertext) => {
       console.log(ciphertext);
       return decrypt(ciphertext, keys.privkey);
